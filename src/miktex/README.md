@@ -1,7 +1,7 @@
 
-# Hello, World! (hello)
+# MiKTeX (miktex)
 
-A hello world feature
+Installs MiKTeX with automatic package installation, as well as the LaTeX Workshop VS Code extension.  
 
 ## Example Usage
 

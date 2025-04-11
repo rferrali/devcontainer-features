@@ -1,0 +1,16 @@
+{
+    "name": "MiKTeX",
+    "id": "miktex",
+    "version": "1.0.0",
+    "description": "Installs MiKTeX with automatic package installation and the LaTeX Workshop VS Code extension",
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ],
+    "customizations": {
+		"vscode": {
+			"extensions": [
+				"James-Yu.latex-workshop"
+			]
+		}
+	}
+}
