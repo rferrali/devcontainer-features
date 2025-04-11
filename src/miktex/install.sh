@@ -1,4 +1,25 @@
 #!/bin/bash
+
+# This script installs MiKTeX on a Debian-based Linux distribution.
+# 
+# Features:
+# - Verifies that the script is running on a Debian-based system.
+# - Checks if MiKTeX is already installed and skips installation if it is.
+# - Ensures required dependencies (curl and lsb-release) are installed.
+# - Adds the MiKTeX repository and imports its GPG key.
+# - Installs MiKTeX and performs initial setup.
+# - Cleans up unnecessary packages and temporary files after installation.
+# 
+# Usage:
+# - Run this script as root or with sudo privileges.
+# - Ensure the system has internet access to download required packages and keys.
+# 
+# Notes:
+# - The script removes curl and lsb-release if they were installed as part of the process.
+# - It performs an `apt-get update` only if the package lists are empty.
+# - MiKTeX is configured to auto-install missing packages during runtime.
+# - The script is designed for minimal impact on the system by using `--no-install-recommends`.
+
 set -e
 
 echo "Activating feature 'miktex'"
