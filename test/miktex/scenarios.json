@@ -1,5 +1,5 @@
 {
-  "hello": {
+  "miktex": {
       "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
       "features": {
           "miktex": {}
