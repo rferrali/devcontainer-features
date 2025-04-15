@@ -23,58 +23,89 @@
 set -e
 
 echo "Activating feature 'miktex'"
+
+# Basic checks
 if ! [ -f /etc/debian_version ]; then
     echo "Error: This script only supports Debian-based distributions."
     exit 1
 fi
-if command -v miktexsetup &> /dev/null; then
+
+ARCHITECTURE=$(uname -m)
+if [ "$ARCHITECTURE" != "x86_64" ]; then
+    echo "Error: This script only supports x86_64 architectures."
+    exit 1
+fi
+
+# Skip if already installed
+if command -v miktexsetup &>/dev/null; then
     echo "MiKTeX is already installed. Skipping installation."
     exit 0
 fi
-if command -v curl &> /dev/null; then
-    CURL_INSTALLED=1
-else
-    CURL_INSTALLED=0
-fi
-if command -v lsb_release &> /dev/null; then
-    LSB_INSTALLED=1
-else
-    LSB_INSTALLED=0
-fi
-if [ $CURL_INSTALLED -eq 0 -o $LSB_INSTALLED -eq 0 ]; then
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-        apt-get update
-    fi
-    if [ $CURL_INSTALLED -eq 0 ]; then
-        apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
-    fi
-    if [ $LSB_INSTALLED -eq 0 ]; then
-        apt-get update && apt-get install -y --no-install-recommends lsb-release
-    fi
-fi
-if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+
+# Install prerequisites
+MISSING_PACKAGES=()
+! command -v curl &>/dev/null && MISSING_PACKAGES+=(curl ca-certificates)
+! command -v lsb_release &>/dev/null && MISSING_PACKAGES+=(lsb-release)
+
+if [ ${#MISSING_PACKAGES[@]} -gt 0 ]; then
+    echo "Installing missing dependencies: ${MISSING_PACKAGES[*]}"
     apt-get update
+    apt-get install -y --no-install-recommends "${MISSING_PACKAGES[@]}"
 fi
+
+# Add MiKTeX repo
 curl -fsSL https://miktex.org/download/key | tee /usr/share/keyrings/miktex-keyring.asc > /dev/null
 SYSTEM_VERSION=$(lsb_release -cs)
 if [ -f /etc/lsb-release ]; then
-    # Ubuntu
-    echo "deb [signed-by=/usr/share/keyrings/miktex-keyring.asc] https://miktex.org/download/ubuntu $SYSTEM_VERSION universe" | tee /etc/apt/sources.list.d/miktex.list
+    echo "deb [signed-by=/usr/share/keyrings/miktex-keyring.asc] https://miktex.org/download/ubuntu $SYSTEM_VERSION universe" > /etc/apt/sources.list.d/miktex.list
 else
-    # Debian
-    echo "deb [signed-by=/usr/share/keyrings/miktex-keyring.asc] https://miktex.org/download/debian $SYSTEM_VERSION universe" | tee /etc/apt/sources.list.d/miktex.list
-fi
-apt-get update && apt-get install -y --no-install-recommends miktex
-miktexsetup finish --shared
-initexmf --admin --set-config-value [MPM]AutoInstall=1
-if [ $CURL_INSTALLED -eq 0 ]; then
-    apt-get remove -y curl
-fi
-if [ $LSB_INSTALLED -eq 0 ]; then
-    apt-get remove -y lsb-release
+    echo "deb [signed-by=/usr/share/keyrings/miktex-keyring.asc] https://miktex.org/download/debian $SYSTEM_VERSION universe" > /etc/apt/sources.list.d/miktex.list
 fi
 
+# Install MiKTeX
+apt-get update
+apt-get install -y --no-install-recommends miktex
+miktexsetup finish --shared
+if AUTOINSTALLPACKAGES="true"; then
+    echo "Setting up MiKTeX to auto-install missing packages"
+    initexmf --admin --set-config-value [MPM]AutoInstall=1
+else
+    echo "Setting up MiKTeX to not auto-install missing packages"
+    initexmf --admin --set-config-value [MPM]AutoInstall=0
+fi
+
+if INSTALLTEXFMT="true"; then
+    # install tex-fmt if not already present
+    if ! command -v tex-fmt &>/dev/null; then
+        echo "Installing tex-fmt using Rust"
+
+        if ! command -v cargo &>/dev/null; then
+        echo "Rust not found. Installing Rust toolchain..."
+
+        # Check if build-essential is already installed
+        if dpkg -s build-essential &>/dev/null; then
+            BUILD_ESSENTIAL_ALREADY_PRESENT=true
+        else
+            apt-get install -y --no-install-recommends build-essential
+            BUILD_ESSENTIAL_INSTALLED_NOW=true
+        fi
+
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        source "$HOME/.cargo/env"
+        RUST_INSTALLED_NOW=true
+    fi
+
+        cargo install tex-fmt
+        install -m 755 "$HOME/.cargo/bin/tex-fmt" /usr/local/bin/tex-fmt
+    fi
+fi
+
+
+# Cleanup
+echo "Cleaning up"
+[ "${MISSING_PACKAGES[*]}" != "" ] && apt-get remove -y "${MISSING_PACKAGES[@]}"
+[ "$RUST_INSTALLED_NOW" = true ] && rm -rf "$HOME/.cargo" "$HOME/.rustup"
+[ "$BUILD_ESSENTIAL_INSTALLED_NOW" = true ] && apt-get purge -y build-essential
 apt-get autoremove -y
 apt-get autoclean -y
 rm -rf /var/lib/apt/lists/*
-

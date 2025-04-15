@@ -1,16 +1,31 @@
 {
     "name": "MiKTeX",
     "id": "miktex",
-    "version": "1.0.1",
-    "description": "Installs MiKTeX with automatic package installation and the LaTeX Workshop VS Code extension",
+    "version": "1.1.0",
+    "description": "Installs MiKTeX and useful addons for a pleasant development experience in VS Code (automatic package installation, LaTeX Workshop VS Code extension, tex-fmt)",
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"
     ],
+    "options": {
+        "autoInstallPackages": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to configure MiKTeX to automatically install missing packages. If false, you will have to install missing packages manually."
+        },
+        "installTexFmt": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to install tex-fmt, a LaTeX formatter. If false, you will have to disable the latex-workshop.formatting.latex setting."
+        }
+    },
     "customizations": {
 		"vscode": {
 			"extensions": [
 				"James-Yu.latex-workshop"
-			]
+			],
+            "settings": {
+                "latex-workshop.formatting.latex": "tex-fmt"
+            }
 		}
 	}
 }
