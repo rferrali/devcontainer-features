@@ -1,7 +1,7 @@
 
 # MiKTeX (miktex)
 
-Installs MiKTeX with automatic package installation and the LaTeX Workshop VS Code extension
+Installs MiKTeX and useful addons for a pleasant development experience in VS Code (automatic package installation, LaTeX Workshop VS Code extension, tex-fmt)
 
 ## Example Usage
 
@@ -11,7 +11,12 @@ Installs MiKTeX with automatic package installation and the LaTeX Workshop VS Co
 }
 ```
 
+## Options
 
+| Options Id | Description | Type | Default Value |
+|-----|-----|-----|-----|
+| autoInstallPackages | Whether to configure MiKTeX to automatically install missing packages. If false, you will have to install missing packages manually. | boolean | true |
+| installTexFmt | Whether to install tex-fmt, a LaTeX formatter. If false, you will have to disable the latex-workshop.formatting.latex setting. | boolean | true |
 
 ## Customizations
 
