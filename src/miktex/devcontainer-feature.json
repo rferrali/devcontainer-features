@@ -1,11 +1,8 @@
 {
     "name": "MiKTeX",
     "id": "miktex",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Installs MiKTeX and useful addons for a pleasant development experience in VS Code (automatic package installation, LaTeX Workshop VS Code extension, tex-fmt)",
-    "installsAfter": [
-        "ghcr.io/devcontainers/features/common-utils"
-    ],
     "options": {
         "autoInstallPackages": {
             "type": "boolean",
